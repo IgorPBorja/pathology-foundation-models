@@ -2,3 +2,4 @@ gdown
 timm
 huggingface_hub
 transformers
+pillow
