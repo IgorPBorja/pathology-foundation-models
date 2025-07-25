@@ -22,17 +22,21 @@ class FoundationModel:
     model: nn.Module
     """Preprocessing transform"""
     processor: nn.Module
+    device: str
 
 
-def load_foundation_models(model_id: str, token: str | None = None) -> FoundationModel:
+def load_foundation_model(
+    model_id: str, device: str | None = None, token: str | None = None
+) -> FoundationModel:
     """
     Loads model from :model_id:. Agnostic to storage location (huggingface, etc.)
 
     Returns a pair (model, transform)
 
     :param model_id: str
+    :param device: device to load the model on (e.g. "cuda" or "cpu"). If None, will not move the model to any device
     :param token: access token (e.g Hugging Face access token). Might be None
-        (if None, will try to get from environment variables if necessary)
+        (if None, will try to get from environment variables if necessary. For HF, this env var is `HF_TOKEN`)
         HF's User Access Token can be found at https://huggingface.co/settings/tokens
     :return model: nn.Module
     :return transform: nn.Module
@@ -82,7 +86,7 @@ def load_foundation_models(model_id: str, token: str | None = None) -> Foundatio
         source = "hf"
     elif model_id == "owkin/phikon-v2":
         # --> See https://huggingface.co/owkin/phikon-v2
-        processor = AutoImageProcessor.from_pretrained("owkin/phikon-v2")
+        transform = AutoImageProcessor.from_pretrained("owkin/phikon-v2")
         model = AutoModel.from_pretrained("owkin/phikon-v2")
         model.eval()
         source = "hf"
@@ -91,6 +95,11 @@ def load_foundation_models(model_id: str, token: str | None = None) -> Foundatio
             f"Model '{model_id}' does not exist or was not implemented"
         )
 
+    model = model.to(device) if device else model
     return FoundationModel(
-        model_id=model_id, model_source=source, model=model, processor=transform
+        model_id=model_id,
+        model_source=source,
+        model=model,
+        processor=transform,
+        device=device or "cpu",
     )
