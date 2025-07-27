@@ -3,8 +3,8 @@ import torch
 from torchvision.datasets import ImageFolder
 from torch.utils.data import TensorDataset
 
-from .fm_model import FoundationModel
-from ..inference import extract_features
+from dataset.fm_model import FoundationModel
+from inference import extract_features_batched
 
 
 class EmbeddingCache(TensorDataset):
@@ -33,21 +33,20 @@ class EmbeddingCache(TensorDataset):
 
     @staticmethod
     def init_from_image_dataset(
-        image_dataset: ImageFolder, model: FoundationModel
+        image_dataset: ImageFolder,
+        model: FoundationModel,
+        batch_size: int,
     ) -> "EmbeddingCache":
         """
         Initializes the EmbeddingCache with embeddings and labels.
 
         :param image_dataset: ImageFolder dataset containing images
         :param model: FoundationModel instance containing the model and processor
+        :param batch_size: Batch size for processing images
         """
-        embeddings = torch.cat(
-            [
-                extract_features(image_dataset.loader(image_path), model)
-                for image_path, _ in image_dataset.imgs
-            ],
-            dim=0,
-        )
+        full_tensor = torch.stack([img for img, _ in image_dataset], dim=0)
+        assert full_tensor.dim() == 4  # batch tensor of shape (N, 3, H, W)
+        embeddings = extract_features_batched(full_tensor, model, batch_size)
         image_paths = [img_path for img_path, _ in image_dataset.imgs]
         if hasattr(image_dataset, "targets"):
             return EmbeddingCache(

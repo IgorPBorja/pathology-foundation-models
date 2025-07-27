@@ -3,8 +3,12 @@ import torch
 import os
 import pytest
 
-from ..inference import extract_features, convert_to_batch_tensor
-from ..dataset.loader import load_foundation_model
+from inference import (
+    extract_features,
+    extract_features_batched,
+    convert_to_batch_tensor,
+)
+from dataset.loader import load_foundation_model
 
 
 @pytest.fixture
@@ -52,3 +56,12 @@ def test_convert_to_batch_tensor_pil():
 
     assert isinstance(batch_tensor, torch.Tensor)
     assert batch_tensor.shape == (1, 3, 300, 200)
+
+
+def test_batch_inference(hf_token):
+    images = [PIL.Image.new("RGB", (224, 224), color="red") for _ in range(5)]
+    model = load_foundation_model("MahmoodLab/UNI", device="cuda", token=hf_token)
+    batch_tensor = extract_features_batched(images, model, batch_size=2)
+
+    assert isinstance(batch_tensor, torch.Tensor)
+    assert batch_tensor.shape == (5, 1024)

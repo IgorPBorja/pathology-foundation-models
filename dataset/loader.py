@@ -5,15 +5,12 @@ Module for abstracting model loading logic
 import timm
 import torch
 
-from dataclasses import dataclass
-from typing import Literal
-from torch import nn
 from timm.data import resolve_data_config
 from timm.data.transforms_factory import create_transform
 from huggingface_hub import login
 from transformers import AutoModel, AutoImageProcessor
 
-from .fm_model import FoundationModel
+from dataset.fm_model import FoundationModel
 
 
 def load_foundation_model(

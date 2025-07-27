@@ -5,9 +5,9 @@ import torch
 
 from torchvision.datasets import ImageFolder
 
-from ..dataset.loader import load_foundation_model
-from ..dataset.cached_embedding import EmbeddingCache
-from ..inference import extract_features
+from dataset.loader import load_foundation_model
+from dataset.cached_embedding import EmbeddingCache
+from inference import extract_features
 
 
 @pytest.fixture
@@ -41,7 +41,7 @@ def image_dataset():
 
 def test_make_embedding_cache(hf_token: str, image_dataset: ImageFolder):
     model = load_foundation_model("MahmoodLab/UNI", device="cuda", token=hf_token)
-    cache = EmbeddingCache.init_from_image_dataset(image_dataset, model)
+    cache = EmbeddingCache.init_from_image_dataset(image_dataset, model, batch_size=32)
     dataset_dir = image_dataset.root
 
     sample_img = image_dataset.loader(
@@ -64,7 +64,7 @@ def test_make_embedding_cache(hf_token: str, image_dataset: ImageFolder):
 
 def test_load_embedding_cache(hf_token: str, image_dataset: ImageFolder):
     model = load_foundation_model("MahmoodLab/UNI", device="cuda", token=hf_token)
-    cache = EmbeddingCache.init_from_image_dataset(image_dataset, model)
+    cache = EmbeddingCache.init_from_image_dataset(image_dataset, model, batch_size=32)
     dataset_dir = image_dataset.root
 
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
