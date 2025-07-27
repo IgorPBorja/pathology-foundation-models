@@ -9,3 +9,4 @@ torchvision
 tqdm
 ipykernel
 ipywidgets
+torchmetrics
