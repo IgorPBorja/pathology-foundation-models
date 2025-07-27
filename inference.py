@@ -1,7 +1,6 @@
 import torch
 import torchvision.transforms as T
 
-from typing import Literal
 from PIL.Image import Image
 
 from .loader import FoundationModel
@@ -27,11 +26,14 @@ def convert_to_batch_tensor(image: Image | torch.Tensor) -> torch.Tensor:
     else:
         raise TypeError("Input must be a PIL Image or a torch Tensor")
 
+    assert (
+        image.dim() == 4
+    ), "Unexpected return shape, expected (1, 3, H, W) or (N, 3, H, W)"
     return image
 
 
 def extract_features(
-    image: Image | torch.Tensor, model: FoundationModel, type: Literal["pil", "torch"]
+    image: Image | torch.Tensor, model: FoundationModel
 ) -> torch.Tensor:
     """
     Extracts features from single PIL image using the specified model.
@@ -41,16 +43,16 @@ def extract_features(
     :param model: FoundationModel instance containing the model and processor
     :return: Extracted features as a torch.Tensor of shape (1, N)
     """
-    if type == "pil" and not isinstance(image, Image):
-        raise TypeError("Expected a PIL Image when type is 'pil'")
-    if type == "torch" and not isinstance(image, torch.Tensor):
-        raise TypeError("Expected a torch Tensor when type is 'torch'")
+    if not isinstance(image, Image) and not isinstance(image, torch.Tensor):
+        raise TypeError(
+            f"Input must be a PIL Image or a torch Tensor, got {type(image)}"
+        )
 
     image_tensor = convert_to_batch_tensor(image)
 
     if model.model_id == "MahmoodLab/UNI" or model.model_id == "MahmoodLab/UNI2-h":
         # For UNI and UNI2-h, we use the transform directly
-        image_tensor = model.processor(image_tensor).unsqueeze(0)  # Add batch dimension
+        image_tensor = model.processor(image_tensor)
         image_tensor = image_tensor.to(model.device)
         with torch.inference_mode():
             features = model.model(image_tensor)
