@@ -77,7 +77,10 @@ def extract_features(
         with torch.inference_mode():
             outputs = model.model(**inputs)
             features = outputs.last_hidden_state[:, 0, :]  # (1, 1024) shape
-            assert features.shape == (1, 1024), "Expected feature shape (1, 1024)"
+            assert features.shape == (
+                len(images),
+                1024,
+            ), f"Unexpected shape {features.shape}, expected (N, 1024)"
         return features
 
 
