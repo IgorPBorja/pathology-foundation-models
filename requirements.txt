@@ -4,3 +4,5 @@ huggingface_hub
 transformers
 pillow
 pytest
+scikit-learn
+torchvision
