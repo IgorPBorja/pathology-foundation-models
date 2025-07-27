@@ -6,7 +6,8 @@
 	},
 	"runArgs": [
 		"--gpus",
-		"all"
+		"all",
+		"--shm-size=20gb"
 	],
 	"hostRequirements": {
 		"gpu": true

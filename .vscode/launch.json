@@ -14,8 +14,17 @@
                 "tests/test_inference.py"
             ],
             "env": {
-                "HF_TOKEN": "${env:HF_TOKEN}"
+                "HF_TOKEN": "${input:hfToken}"
             }
+        }
+    ],
+    "inputs": [
+        {
+            "id": "hfToken",
+            "description": "Enter your HuggingFace token",
+            "default": "",
+            "type": "promptString",
+            "password": true
         }
     ]
 }

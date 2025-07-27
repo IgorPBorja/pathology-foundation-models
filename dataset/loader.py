@@ -4,6 +4,7 @@ Module for abstracting model loading logic
 
 import timm
 import torch
+import logging
 
 from timm.data import resolve_data_config
 from timm.data.transforms_factory import create_transform
@@ -29,6 +30,10 @@ def load_foundation_model(
     :return model: nn.Module
     :return transform: nn.Module
     """
+    if not device.startswith("cuda"):
+        logging.warning(
+            "Model will be loaded on CPU. If you want to use GPU, please specify `device='cuda'`"
+        )
     if model_id == "MahmoodLab/UNI":
         # --> See https://huggingface.co/MahmoodLab/UNI
         login(token)

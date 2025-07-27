@@ -6,3 +6,7 @@ pillow
 pytest
 scikit-learn
 torchvision
+tqdm
+ipykernel
+ipywidgets
+torchmetrics

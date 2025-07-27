@@ -4,7 +4,7 @@ from torchvision.datasets import ImageFolder
 from torch.utils.data import TensorDataset
 
 from dataset.fm_model import FoundationModel
-from inference import extract_features_batched
+from inference import extract_features_from_dataset
 
 
 class EmbeddingCache(TensorDataset):
@@ -18,6 +18,7 @@ class EmbeddingCache(TensorDataset):
         embeddings: torch.Tensor,
         labels: torch.Tensor | None = None,
         image_paths: list[str] | None = None,
+        device: str = "cpu",
     ):
         """
         Initializes the EmbeddingCache with embeddings and labels.
@@ -27,8 +28,10 @@ class EmbeddingCache(TensorDataset):
         :param image_paths: Optional list of image paths corresponding to the embeddings
         """
         super().__init__(embeddings, labels)
-        self.embeddings = embeddings
-        self.labels = labels if labels is not None else torch.tensor([])
+        self.embeddings = embeddings.to(device)
+        self.labels = (
+            labels.to(device) if labels is not None else torch.tensor([], device=device)
+        )
         self.image_paths = image_paths
 
     @staticmethod
@@ -36,6 +39,8 @@ class EmbeddingCache(TensorDataset):
         image_dataset: ImageFolder,
         model: FoundationModel,
         batch_size: int,
+        num_workers: int = 4,
+        display_progress: bool = True,
     ) -> "EmbeddingCache":
         """
         Initializes the EmbeddingCache with embeddings and labels.
@@ -43,21 +48,29 @@ class EmbeddingCache(TensorDataset):
         :param image_dataset: ImageFolder dataset containing images
         :param model: FoundationModel instance containing the model and processor
         :param batch_size: Batch size for processing images
+        :param num_workers: Number of workers for data loading
+        :param display_progress: Whether to display progress bar during feature extraction
         """
-        full_tensor = torch.stack([img for img, _ in image_dataset], dim=0)
-        assert full_tensor.dim() == 4  # batch tensor of shape (N, 3, H, W)
-        embeddings = extract_features_batched(full_tensor, model, batch_size)
+        embeddings = extract_features_from_dataset(
+            image_dataset,
+            model,
+            batch_size,
+            num_workers=num_workers,
+            display_progress=display_progress,
+        )  # is on model device
         image_paths = [img_path for img_path, _ in image_dataset.imgs]
         if hasattr(image_dataset, "targets"):
             return EmbeddingCache(
-                embeddings, torch.tensor(image_dataset.targets), image_paths
+                embeddings,
+                torch.tensor(image_dataset.targets).to(model.device),
+                image_paths,
             )
         else:
             return EmbeddingCache(embeddings, image_paths=image_paths)
 
     def __getitem__(self, index):
         """
-        Returns the embedding and label for the given index.
+        Returns the image path, embedding and label for the given index.
 
         :param index: Index of the item to retrieve
         :return: Tuple of (image_path, embedding, label)
@@ -83,7 +96,7 @@ class EmbeddingCache(TensorDataset):
         )
 
     @staticmethod
-    def load_from_file(cache_path: str) -> "EmbeddingCache":
+    def load_from_file(cache_path: str, device: str = "cpu") -> "EmbeddingCache":
         """
         Loads the embedding cache from a file.
 
@@ -95,4 +108,5 @@ class EmbeddingCache(TensorDataset):
             embeddings=dataset_dict["embeddings"],
             labels=dataset_dict.get("labels", None),
             image_paths=dataset_dict.get("image_paths", None),
+            device=device,
         )
