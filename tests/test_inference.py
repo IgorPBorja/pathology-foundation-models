@@ -4,7 +4,7 @@ import os
 import pytest
 
 from ..inference import extract_features, convert_to_batch_tensor
-from ..loader import load_foundation_model
+from ..dataset.loader import load_foundation_model
 
 
 @pytest.fixture

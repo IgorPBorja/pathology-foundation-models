@@ -3,7 +3,7 @@ import torchvision.transforms as T
 
 from PIL.Image import Image
 
-from .loader import FoundationModel
+from .dataset.fm_model import FoundationModel
 
 
 def convert_to_batch_tensor(image: Image | torch.Tensor) -> torch.Tensor:

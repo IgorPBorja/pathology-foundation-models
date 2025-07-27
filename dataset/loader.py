@@ -13,16 +13,7 @@ from timm.data.transforms_factory import create_transform
 from huggingface_hub import login
 from transformers import AutoModel, AutoImageProcessor
 
-
-@dataclass
-class FoundationModel:
-    model_id: str
-    model_source: Literal["hf"]
-    """"""
-    model: nn.Module
-    """Preprocessing transform"""
-    processor: nn.Module
-    device: str
+from .fm_model import FoundationModel
 
 
 def load_foundation_model(
