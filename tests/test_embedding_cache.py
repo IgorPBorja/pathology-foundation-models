@@ -8,35 +8,7 @@ from torchvision.datasets import ImageFolder
 from dataset.loader import load_foundation_model
 from dataset.cached_embedding import EmbeddingCache
 from inference import extract_features
-
-
-@pytest.fixture
-def hf_token():
-    token = os.getenv("HF_TOKEN")
-    if not token:
-        raise ValueError("HF_TOKEN environment variable is not set")
-    return token
-
-
-@pytest.fixture
-def image_dataset():
-    from torchvision.datasets import ImageFolder
-    from torchvision import transforms
-
-    # Create a temporary directory for the image dataset
-    temp_dir = tempfile.TemporaryDirectory()
-    # Create a simple image dataset with dummy images
-    os.makedirs(os.path.join(temp_dir.name, "class1"))
-    os.makedirs(os.path.join(temp_dir.name, "class2"))
-    # Create dummy images
-    for i in range(5):
-        img = transforms.ToPILImage()(torch.rand(3, 224, 224))
-        img.save(os.path.join(temp_dir.name, "class1", f"image_{i}.jpg"))
-        img.save(os.path.join(temp_dir.name, "class2", f"image_{i}.jpg"))
-
-    yield ImageFolder(temp_dir.name)
-    # teardown
-    temp_dir.cleanup()
+from tests.fixtures import hf_token, image_dataset
 
 
 def test_make_embedding_cache(hf_token: str, image_dataset: ImageFolder):
@@ -65,7 +37,6 @@ def test_make_embedding_cache(hf_token: str, image_dataset: ImageFolder):
 def test_load_embedding_cache(hf_token: str, image_dataset: ImageFolder):
     model = load_foundation_model("MahmoodLab/UNI", device="cuda", token=hf_token)
     cache = EmbeddingCache.init_from_image_dataset(image_dataset, model, batch_size=32)
-    dataset_dir = image_dataset.root
 
     with tempfile.NamedTemporaryFile(delete=False) as temp_file:
         cache.save(temp_file.name)

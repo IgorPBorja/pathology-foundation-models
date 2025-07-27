@@ -2,6 +2,8 @@ import torch
 import torchvision.transforms as T
 
 from PIL.Image import Image
+from tqdm import tqdm
+from torchvision.datasets import ImageFolder
 
 from dataset.fm_model import FoundationModel
 
@@ -60,11 +62,11 @@ def extract_features(
     :return: Extracted features as a torch.Tensor of shape (1, N)
     """
     image_tensor = convert_to_batch_tensor(images)
+    image_tensor = image_tensor.to(model.device)
 
     if model.model_id == "MahmoodLab/UNI" or model.model_id == "MahmoodLab/UNI2-h":
         # For UNI and UNI2-h, we use the transform directly
         image_tensor = model.processor(image_tensor)
-        image_tensor = image_tensor.to(model.device)
         with torch.inference_mode():
             features = model.model(image_tensor)
         return features
@@ -79,21 +81,34 @@ def extract_features(
         return features
 
 
-def extract_features_batched(
-    images: Image | list[Image] | torch.Tensor,
+def extract_features_from_dataset(
+    images: ImageFolder,
     model: FoundationModel,
     batch_size: int,
+    num_workers: int = 4,
+    display_progress: bool = False,
 ) -> torch.Tensor:
     """
     Extracts features from a collection images using the specified model.
     Performs batching to handle large datasets efficiently.
 
     **Note: images must be of the same size, since images are batched before each inference pass**
+
+    :param images: ImageFolder dataset containing images
+    :param model: FoundationModel instance containing the model and processor
+    :param batch_size: Batch size for processing images
+    :param num_workers: Number of workers for DataLoader
+    :param display_progress: Whether to display a progress bar
+    :return: Extracted features as a torch.Tensor of shape (N, D) where
+        N is the number of images and D is the embedding dimension
     """
-    N = len(images)
+    dataloader = torch.utils.data.DataLoader(
+        images, batch_size=batch_size, shuffle=False, num_workers=num_workers
+    )
     _embeddings = []
-    for i in range(0, N, batch_size):
-        image_batch = [images[i] for i in range(i, min(i + batch_size, N))]
-        embedding_batch = extract_features(image_batch, model)
+    if display_progress:
+        dataloader = tqdm(dataloader, desc="Extracting features")
+    for batch, _ in dataloader:  # ignore labels
+        embedding_batch = extract_features(batch, model)
         _embeddings.append(embedding_batch)
     return torch.cat(_embeddings, dim=0)

@@ -1,22 +1,13 @@
 import PIL
 import torch
-import os
-import pytest
 
 from inference import (
     extract_features,
-    extract_features_batched,
+    extract_features_from_dataset,
     convert_to_batch_tensor,
 )
 from dataset.loader import load_foundation_model
-
-
-@pytest.fixture
-def hf_token():
-    token = os.getenv("HF_TOKEN")
-    if not token:
-        raise ValueError("HF_TOKEN environment variable is not set")
-    return token
+from tests.fixtures import hf_token, image_dataset
 
 
 def test_inference_uni(hf_token):
@@ -58,10 +49,11 @@ def test_convert_to_batch_tensor_pil():
     assert batch_tensor.shape == (1, 3, 300, 200)
 
 
-def test_batch_inference(hf_token):
-    images = [PIL.Image.new("RGB", (224, 224), color="red") for _ in range(5)]
+def test_batch_inference(hf_token, image_dataset):
     model = load_foundation_model("MahmoodLab/UNI", device="cuda", token=hf_token)
-    batch_tensor = extract_features_batched(images, model, batch_size=2)
+    batch_tensor = extract_features_from_dataset(
+        image_dataset, model, batch_size=3, num_workers=2, display_progress=True
+    )
 
     assert isinstance(batch_tensor, torch.Tensor)
-    assert batch_tensor.shape == (5, 1024)
+    assert batch_tensor.shape == (len(image_dataset), 1024)
