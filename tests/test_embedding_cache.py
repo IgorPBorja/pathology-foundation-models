@@ -1,15 +1,13 @@
 import os
-import pytest
 import tempfile
 import torch
 
 from torchvision.datasets import ImageFolder
 from PIL import Image
 
-from loader import load_foundation_model
 from dataset.cached_embedding import EmbeddingCache
 from inference import extract_features
-from fm_model import FoundationModelEnum
+from fm_model import FoundationModelEnum, load_foundation_model
 from tests.fixtures import hf_token, image_dataset
 
 

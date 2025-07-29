@@ -5,13 +5,8 @@ from PIL.Image import Image
 from tqdm import tqdm
 from torchvision.datasets import ImageFolder
 
-from fm_model import FoundationModel, FoundationModelEnum
-from models.inference import (
-    __extract_features_uni,
-    __extract_features_uni2h,
-    __extract_features_phikon,
-    __extract_features_phikon_v2,
-)
+from models import get_inference_fn
+from fm_model import FoundationModel
 
 
 def convert_to_batch_tensor(images: Image | list[Image] | torch.Tensor) -> torch.Tensor:
@@ -70,24 +65,12 @@ def extract_features(
     image_tensor = convert_to_batch_tensor(images)
     image_tensor = image_tensor.to(model.device)
 
-    if model.model_type == FoundationModelEnum.UNI:
-        features = __extract_features_uni(image_tensor, model.model, model.processor)
-    elif model.model_type == FoundationModelEnum.UNI2H:
-        features = __extract_features_uni2h(image_tensor, model.model, model.processor)
-    elif model.model_type == FoundationModelEnum.PHIKON:
-        features = __extract_features_phikon(image_tensor, model.model, model.processor)
-    elif model.model_type == FoundationModelEnum.PHIKON_V2:
-        features = __extract_features_phikon_v2(
-            image_tensor, model.model, model.processor
-        )
-    else:
-        raise NotImplementedError(
-            f"Model '{model.model_type.value}' does not exist or inference is not implemented for it"
-        )
+    inference_fn = get_inference_fn(model.model_type)
+    features = inference_fn(image_tensor, model.model, model.processor)
     assert features.shape == (
         len(image_tensor),
-        model.model_type.embedding_dim,
-    ), f"Unexpected feature shape {features.shape}, expected ({len(image_tensor)}, {model.model_type.embedding_dim}) for model type {model.model_type.value}"
+        model.embedding_dim,
+    ), f"Unexpected feature shape {features.shape}, expected ({len(image_tensor)}, {model.embedding_dim}) for model type {model.model_type.value}"
     return features
 
 

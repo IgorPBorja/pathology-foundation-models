@@ -16,6 +16,7 @@ def __extract_features_uni(
     --> See https://huggingface.co/MahmoodLab/UNI
 
     Extracts features from images using the UNI model.
+    Assumes image and model in the same device.
 
     DON'T use this function directly
 
@@ -38,6 +39,7 @@ def __extract_features_uni2h(
     --> See https://huggingface.co/MahmoodLab/UNI2-h
 
     Extracts features from images using the UNI2-h model.
+    Assumes image and model in the same device.
 
     DON'T use this function directly
 
@@ -60,6 +62,7 @@ def __extract_features_phikon(
     --> See https://github.com/owkin/HistoSSLscaling/
 
     Extracts features from images using the Phikon model.
+    Assumes image and model in the same device.
 
     DON'T use this function directly
 
@@ -101,4 +104,32 @@ def __extract_features_phikon_v2(
     with torch.inference_mode():
         outputs = model(**inputs)
         features = outputs.last_hidden_state[:, 0, :]
+    return features
+
+
+def __extract_features_h_optimus_0(
+    images: torch.Tensor,
+    model: nn.Module,
+    transform: nn.Module,
+) -> torch.Tensor:
+    """
+    --> See https://huggingface.co/bioptimus/H-optimus-0 (adapted to work with tensors)
+
+    Extracts features from images using the H-Optimus-0 model.
+    Assumes image and model in the same device.
+
+    DON'T use this function directly
+
+    :param images: Batch tensor of shape (N, 3, H, W)
+    :param model: The H-Optimus-0 model
+    :return: Extracted features
+    """
+    with torch.autocast(device_type="cuda", dtype=torch.float16):
+        with torch.inference_mode():
+            # (C, H, W) -> (H, W, C)
+            numpy_images = [image.permute(1, 2, 0).cpu().numpy() for image in images]
+            preprocessed_images = torch.stack(
+                [transform(image) for image in numpy_images]
+            )  # (N, C, H, W)
+            features = model(preprocessed_images.to(images.device))
     return features

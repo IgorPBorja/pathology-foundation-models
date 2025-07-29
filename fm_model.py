@@ -1,35 +1,15 @@
+"""
+Module for abstracting model loading logic and providing a unified interface
+"""
+
+import logging
+
+from huggingface_hub import login
 from dataclasses import dataclass
 from torch import nn
 from typing import Literal
 
-from enum import Enum
-
-
-class FoundationModelEnum(Enum):
-    """
-    Enum for foundation model types.
-    """
-
-    UNI = "uni"
-    UNI2H = "uni2h"
-    PHIKON = "phikon"
-    PHIKON_V2 = "phikon_v2"
-
-    @property
-    def embedding_dim(self) -> int:
-        """
-        Returns the embedding dimension for the model type.
-        """
-        if self == FoundationModelEnum.UNI:
-            return 1024
-        elif self == FoundationModelEnum.UNI2H:
-            return 1536
-        elif self == FoundationModelEnum.PHIKON:
-            return 768
-        elif self == FoundationModelEnum.PHIKON_V2:
-            return 1024
-        else:
-            raise ValueError(f"Unknown model type: {self.value}")
+from models import FoundationModelEnum, get_embedding_dim, get_loader_fn
 
 
 @dataclass
@@ -42,3 +22,43 @@ class FoundationModel:
     processor: nn.Module
     """Preprocessing transform"""
     device: str
+
+    @property
+    def embedding_dim(self) -> int:
+        """Returns the embedding dimension of the model."""
+        return get_embedding_dim(self.model_type)
+
+
+def load_foundation_model(
+    model_type: FoundationModelEnum, device: str | None = None, token: str | None = None
+) -> FoundationModel:
+    """
+    Loads model specified by type. Agnostic to storage location (huggingface, etc.)
+
+    Returns a pair (model, transform)
+
+    :param model_type: FoundationModelEnum
+    :param device: device to load the model on (e.g. "cuda" or "cpu"). If None, will not move the model to any device
+    :param token: access token (e.g Hugging Face access token). Might be None
+        (if None, will try to get from environment variables if necessary. For HF, this env var is `HF_TOKEN`)
+        HF's User Access Token can be found at https://huggingface.co/settings/tokens
+    :return model: nn.Module
+    :return transform: nn.Module
+    """
+    if not device.startswith("cuda"):
+        logging.warning(
+            "Model will be loaded on CPU. If you want to use GPU, please specify `device='cuda'`"
+        )
+    login(token)
+    source = "hf"  # for now only supports Hugging Face
+
+    loader = get_loader_fn(model_type)
+    model, transform = loader()
+    model = model.to(device) if device else model
+    return FoundationModel(
+        model_type=model_type,
+        model_source=source,
+        model=model,
+        processor=transform,
+        device=device or "cpu",
+    )

@@ -7,8 +7,8 @@ from inference import (
     extract_features_from_dataset,
     convert_to_batch_tensor,
 )
-from loader import load_foundation_model
-from fm_model import FoundationModelEnum
+from models import FoundationModelEnum
+from fm_model import load_foundation_model
 from tests.fixtures import hf_token, image_dataset
 
 
@@ -19,9 +19,10 @@ from tests.fixtures import hf_token, image_dataset
         (FoundationModelEnum.UNI2H, (1, 1536)),
         (FoundationModelEnum.PHIKON, (1, 768)),
         (FoundationModelEnum.PHIKON_V2, (1, 1024)),
+        (FoundationModelEnum.H_OPTIMUS_0, (1, 1536)),
     ],
 )
-def test_inference_models(model_type, expected_shape, hf_token):
+def test_inference_models_from_PIL(model_type, expected_shape, hf_token):
     image = PIL.Image.new("RGB", (224, 224), color="red")
     model = load_foundation_model(model_type, device="cuda", token=hf_token)
     features = extract_features(image, model)

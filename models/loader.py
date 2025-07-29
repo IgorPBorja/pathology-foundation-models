@@ -8,6 +8,7 @@ import torch
 from timm.data import resolve_data_config
 from timm.data.transforms_factory import create_transform
 from torch import nn
+from torchvision import transforms as T
 from transformers import AutoModel, AutoImageProcessor, ViTModel
 
 
@@ -98,5 +99,33 @@ def __load_phikon_v2() -> tuple[nn.Module, nn.Module]:
     """
     transform = AutoImageProcessor.from_pretrained("owkin/phikon-v2")
     model = AutoModel.from_pretrained("owkin/phikon-v2")
+    model.eval()
+    return model, transform
+
+
+def __load_h_optimus_0() -> tuple[nn.Module, nn.Module]:
+    """
+    --> See https://huggingface.co/bioptimus/H-optimus-0
+
+    Loads the H-Optimus-0 model from Hugging Face to CPU.
+
+    DON'T use this function directly
+
+    :return: model, transform
+    """
+    transform = T.Compose(
+        [
+            T.ToTensor(),
+            T.Normalize(
+                mean=(0.707223, 0.578729, 0.703617), std=(0.211883, 0.230117, 0.177517)
+            ),
+        ]
+    )
+    model = timm.create_model(
+        "hf-hub:bioptimus/H-optimus-0",
+        pretrained=True,
+        init_values=1e-5,
+        dynamic_img_size=False,
+    )
     model.eval()
     return model, transform
