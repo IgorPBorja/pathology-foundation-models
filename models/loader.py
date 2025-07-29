@@ -129,3 +129,39 @@ def __load_h_optimus_0() -> tuple[nn.Module, nn.Module]:
     )
     model.eval()
     return model, transform
+
+
+def __load_hibou_b() -> tuple[nn.Module, nn.Module]:
+    """
+    --> See https://huggingface.co/histai/hibou-b
+
+    Loads the Hibou-B model from Hugging Face to CPU.
+
+    DON'T use this function directly
+
+    :return: model, transform
+    """
+    transform = AutoImageProcessor.from_pretrained(
+        "histai/hibou-b", trust_remote_code=True
+    )
+    model = AutoModel.from_pretrained("histai/hibou-b", trust_remote_code=True)
+    model.eval()
+    return model, transform
+
+
+def __load_hibou_L() -> tuple[nn.Module, nn.Module]:
+    """
+    --> See https://huggingface.co/histai/hibou-L
+
+    Loads the Hibou-L model from Hugging Face to CPU.
+
+    DON'T use this function directly
+
+    :return: model, transform
+    """
+    transform = AutoImageProcessor.from_pretrained(
+        "histai/hibou-L", trust_remote_code=True
+    )
+    model = AutoModel.from_pretrained("histai/hibou-L", trust_remote_code=True)
+    model.eval()
+    return model, transform

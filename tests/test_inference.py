@@ -20,6 +20,8 @@ from tests.fixtures import hf_token, image_dataset
         (FoundationModelEnum.PHIKON, (1, 768)),
         (FoundationModelEnum.PHIKON_V2, (1, 1024)),
         (FoundationModelEnum.H_OPTIMUS_0, (1, 1536)),
+        (FoundationModelEnum.HIBOU_B, (1, 768)),
+        (FoundationModelEnum.HIBOU_L, (1, 1024)),
     ],
 )
 def test_inference_models_from_PIL(model_type, expected_shape, hf_token):
