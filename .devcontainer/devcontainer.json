@@ -1,5 +1,5 @@
 {
-	"name": "wdcpath2025",
+	"name": "pathology-foundation-models",
 	"build": {
 		"dockerfile": "../Dockefile",
 		"context": ".."
