@@ -15,7 +15,7 @@ with open(
 
 setup(
     name="pathology-foundation-models",
-    version="0.1.0",
+    version="0.0.1",
     author="Igor Borja",
     author_email="igorpradoborja@gmail.com",
     description="Interface for calling foundation models for histopathology image analysis",
