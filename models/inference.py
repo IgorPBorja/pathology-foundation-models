@@ -22,6 +22,7 @@ def __extract_features_uni(
 
     :param images: Batch tensor of shape (N, 3, H, W)
     :param model: The UNI model
+    :param transform: the preprocessing transform
     :return: Extracted features
     """
     image_tensor = transform(images)
@@ -45,6 +46,7 @@ def __extract_features_uni2h(
 
     :param images: Batch tensor of shape (N, 3, H, W)
     :param model: The UNI2-h model
+    :param transform: the preprocessing transform
     :return: Extracted features
     """
     image_tensor = transform(images)
@@ -68,6 +70,7 @@ def __extract_features_phikon(
 
     :param images: Batch tensor of shape (N, 3, H, W)
     :param model: The Phikon model
+    :param transform: the preprocessing transform
     :return: Extracted features
     """
     # process the image
@@ -95,6 +98,7 @@ def __extract_features_phikon_v2(
 
     :param images: Batch tensor of shape (N, 3, H, W)
     :param model: The Phikon v2 model
+    :param transform: the preprocessing transform
     :return: Extracted features
     """
     inputs = transform(images, return_tensors="pt")
@@ -122,6 +126,7 @@ def __extract_features_h_optimus_0(
 
     :param images: Batch tensor of shape (N, 3, H, W)
     :param model: The H-Optimus-0 model
+    :param transform: the preprocessing transform
     :return: Extracted features
     """
     with torch.autocast(device_type="cuda", dtype=torch.float16):
@@ -132,4 +137,66 @@ def __extract_features_h_optimus_0(
                 [transform(image) for image in numpy_images]
             )  # (N, C, H, W)
             features = model(preprocessed_images.to(images.device))
+    return features
+
+
+def __extract_features_hibou_b(
+    images: torch.Tensor,
+    model: nn.Module,
+    transform: nn.Module,
+) -> torch.Tensor:
+    """
+    --> See https://huggingface.co/histai/hibou-b
+
+    Extracts features from images using the Hibou-B model.
+    Assumes image and model in the same device.
+
+    DON'T use this function directly
+
+    NOTE: Hibou-B uses DinoV2 arch so
+    features are the first token of the last hidden state. Same as Phikon.
+
+    :param images: Batch tensor of shape (N, 3, H, W)
+    :param model: The Hibou-B model
+    :param transform: the preprocessing transform
+    :return: Extracted features
+    """
+    inputs = transform(images, return_tensors="pt")
+    # cast back to original device
+    inputs = {k: v.to(images.device) for k, v in inputs.items()}
+
+    with torch.no_grad():
+        outputs = model(**inputs)
+        features = outputs.last_hidden_state[:, 0, :]
+    return features
+
+
+def __extract_features_hibou_L(
+    images: torch.Tensor,
+    model: nn.Module,
+    transform: nn.Module,
+) -> torch.Tensor:
+    """
+    --> See https://huggingface.co/histai/hibou-L
+
+    Extracts features from images using the Hibou-L model.
+    Assumes image and model in the same device.
+
+    DON'T use this function directly
+
+    NOTE: Hibou-L uses DinoV2 arch so
+    features are the first token of the last hidden state. Same as Phikon.
+
+    :param images: Batch tensor of shape (N, 3, H, W)
+    :param model: The Hibou-L model
+    :param transform: the preprocessing transform
+    :return: Extracted features
+    """
+    inputs = transform(images, return_tensors="pt")
+    # cast back to original device
+    inputs = {k: v.to(images.device) for k, v in inputs.items()}
+
+    with torch.no_grad():
+        outputs = model(**inputs)
+        features = outputs.last_hidden_state[:, 0, :]
     return features

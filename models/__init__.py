@@ -11,6 +11,8 @@ from .loader import (
     __load_phikon,
     __load_phikon_v2,
     __load_h_optimus_0,
+    __load_hibou_b,
+    __load_hibou_L,
 )
 from .inference import (
     __extract_features_uni,
@@ -18,6 +20,8 @@ from .inference import (
     __extract_features_phikon,
     __extract_features_phikon_v2,
     __extract_features_h_optimus_0,
+    __extract_features_hibou_b,
+    __extract_features_hibou_L,
 )
 
 
@@ -32,6 +36,8 @@ class FoundationModelEnum(Enum):
     PHIKON = "phikon"
     PHIKON_V2 = "phikon_v2"
     H_OPTIMUS_0 = "h-optimus-0"
+    HIBOU_B = "hibou-b"
+    HIBOU_L = "hibou-L"
 
 
 _embedding_dims = {
@@ -40,6 +46,8 @@ _embedding_dims = {
     FoundationModelEnum.PHIKON: 768,
     FoundationModelEnum.PHIKON_V2: 1024,
     FoundationModelEnum.H_OPTIMUS_0: 1536,
+    FoundationModelEnum.HIBOU_B: 768,
+    FoundationModelEnum.HIBOU_L: 1024,
 }
 
 _loader_fns = {
@@ -48,6 +56,8 @@ _loader_fns = {
     FoundationModelEnum.PHIKON: __load_phikon,
     FoundationModelEnum.PHIKON_V2: __load_phikon_v2,
     FoundationModelEnum.H_OPTIMUS_0: __load_h_optimus_0,
+    FoundationModelEnum.HIBOU_B: __load_hibou_b,
+    FoundationModelEnum.HIBOU_L: __load_hibou_L,
 }
 
 _inference_fns = {
@@ -56,6 +66,8 @@ _inference_fns = {
     FoundationModelEnum.PHIKON: __extract_features_phikon,
     FoundationModelEnum.PHIKON_V2: __extract_features_phikon_v2,
     FoundationModelEnum.H_OPTIMUS_0: __extract_features_h_optimus_0,
+    FoundationModelEnum.HIBOU_B: __extract_features_hibou_b,
+    FoundationModelEnum.HIBOU_L: __extract_features_hibou_L,
 }
 
 
