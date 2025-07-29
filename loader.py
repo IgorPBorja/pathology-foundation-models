@@ -6,7 +6,7 @@ import logging
 
 from huggingface_hub import login
 
-from dataset.fm_model import FoundationModel, FoundationModelEnum
+from fm_model import FoundationModel, FoundationModelEnum
 from models.loader import (
     __load_uni,
     __load_uni2h,

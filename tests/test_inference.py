@@ -7,8 +7,8 @@ from inference import (
     extract_features_from_dataset,
     convert_to_batch_tensor,
 )
-from dataset.loader import load_foundation_model
-from dataset.fm_model import FoundationModelEnum
+from loader import load_foundation_model
+from fm_model import FoundationModelEnum
 from tests.fixtures import hf_token, image_dataset
 
 

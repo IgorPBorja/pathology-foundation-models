@@ -27,7 +27,7 @@ pip install -e ".[notebook]"
 Experiments should be placed under the `experiments` folder. After installing the package, you can import modules directly:
 
 ```python
-from dataset.loader import load_foundation_model
+from loader import load_foundation_model
 from dataset.cached_embedding import EmbeddingCache
 from unsupervised.kmeans import kmeans_clustering
 ```

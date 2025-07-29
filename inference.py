@@ -5,7 +5,7 @@ from PIL.Image import Image
 from tqdm import tqdm
 from torchvision.datasets import ImageFolder
 
-from dataset.fm_model import FoundationModel, FoundationModelEnum
+from fm_model import FoundationModel, FoundationModelEnum
 from models.inference import (
     __extract_features_uni,
     __extract_features_uni2h,

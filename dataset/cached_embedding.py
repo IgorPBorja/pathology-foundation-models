@@ -3,7 +3,7 @@ import torch
 from torchvision.datasets import ImageFolder
 from torch.utils.data import TensorDataset
 
-from dataset.fm_model import FoundationModel
+from fm_model import FoundationModel
 from inference import extract_features_from_dataset
 
 
@@ -18,7 +18,7 @@ class EmbeddingCache(TensorDataset):
         embeddings: torch.Tensor,
         labels: torch.Tensor | None = None,
         image_paths: list[str] | None = None,
-        device: str = "cpu",
+        device: str = None,
     ):
         """
         Initializes the EmbeddingCache with embeddings and labels.
@@ -26,12 +26,19 @@ class EmbeddingCache(TensorDataset):
         :param embeddings: Tensor of shape (N, D) where N is the number of images and D is the embedding dimension
         :param labels: Optional tensor of shape (N,) containing labels for the images
         :param image_paths: Optional list of image paths corresponding to the embeddings
+        :param device: Device to move the tensors to (e.g., "cuda" or "cpu"). If None, tensors will not be moved.
         """
+        labels = (
+            labels
+            if labels is not None
+            else torch.tensor([], dtype=torch.long, device=embeddings.device)
+        )  # TODO review this, might be bad idea
+        if device:
+            embeddings = embeddings.to(device)
+            labels = labels.to(device)
         super().__init__(embeddings, labels)
-        self.embeddings = embeddings.to(device)
-        self.labels = (
-            labels.to(device) if labels is not None else torch.tensor([], device=device)
-        )
+        self.embeddings = embeddings
+        self.labels = labels
         self.image_paths = image_paths
 
     @staticmethod
