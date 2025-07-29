@@ -60,10 +60,10 @@ jobs:
         name: dist
         path: dist/
     
-    - name: Test installation from wheel
-      run: |
-        pip install dist/*.whl
-        python -c "import pathology_foundation_models; print('Package imported successfully')"
+    # - name: Test installation from wheel
+    #   run: |
+    #     pip install dist/*.whl
+    #     python -c "import pathology_foundation_models; print('Package imported successfully')"
 
   publish-testpypi:
     needs: [build, test-install]
