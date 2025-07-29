@@ -14,7 +14,7 @@ with open(
     ]
 
 setup(
-    name="pathology-foundation-models",
+    name="pathology_foundation_models",
     version="0.0.1",
     author="Igor Borja",
     author_email="igorpradoborja@gmail.com",
