@@ -35,5 +35,8 @@
 	"forwardPorts": [
 		8000
 	],
+	"mounts": [
+		"source=${localEnv:HOME}/.cache/huggingface,target=/root/.cache/huggingface,type=bind,consistency=cached"
+	],
 	"postCreateCommand": "pip install --upgrade pip"
 }
