@@ -1,0 +1,4 @@
+torch==2.7.1
+torchmetrics==1.8.0
+torchvision==0.22.1
+transformers==4.54.0
