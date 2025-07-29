@@ -1,0 +1,8 @@
+# `pathology-foundation-models` changelog
+
+# Version 0.0.1
+
+* Initial version
+* Model support for UNI/UNI2-h, Phikon/Phikon-v2, H-Optimus-0, Hibou-B/Hibou-L, both loading and inference
+* Inference over entire image datasets supported
+* Embedding cache abstraction
