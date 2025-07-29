@@ -5,7 +5,8 @@ from PIL.Image import Image
 from tqdm import tqdm
 from torchvision.datasets import ImageFolder
 
-from dataset.fm_model import FoundationModel
+from models import get_inference_fn
+from fm_model import FoundationModel
 
 
 def convert_to_batch_tensor(images: Image | list[Image] | torch.Tensor) -> torch.Tensor:
@@ -64,24 +65,13 @@ def extract_features(
     image_tensor = convert_to_batch_tensor(images)
     image_tensor = image_tensor.to(model.device)
 
-    if model.model_id == "MahmoodLab/UNI" or model.model_id == "MahmoodLab/UNI2-h":
-        # For UNI and UNI2-h, we use the transform directly
-        image_tensor = model.processor(image_tensor)
-        with torch.inference_mode():
-            features = model.model(image_tensor)
-        return features
-    elif model.model_id == "owkin/phikon-v2":
-        inputs = model.processor(image_tensor, return_tensors="pt")
-        inputs = {k: v.to(model.device) for k, v in inputs.items()}
-        # Get the features
-        with torch.inference_mode():
-            outputs = model.model(**inputs)
-            features = outputs.last_hidden_state[:, 0, :]  # (1, 1024) shape
-            assert features.shape == (
-                len(images),
-                1024,
-            ), f"Unexpected shape {features.shape}, expected (N, 1024)"
-        return features
+    inference_fn = get_inference_fn(model.model_type)
+    features = inference_fn(image_tensor, model.model, model.processor)
+    assert features.shape == (
+        len(image_tensor),
+        model.embedding_dim,
+    ), f"Unexpected feature shape {features.shape}, expected ({len(image_tensor)}, {model.embedding_dim}) for model type {model.model_type.value}"
+    return features
 
 
 def extract_features_from_dataset(
