@@ -190,3 +190,28 @@ def __load_virchow() -> tuple[nn.Module, nn.Module]:
         **resolve_data_config(model.pretrained_cfg, model=model)
     )
     return model, transform
+
+
+def __load_virchow_v2() -> tuple[nn.Module, nn.Module]:
+    """
+    --> See https://huggingface.co/paige-ai/Virchow2
+
+    Loads the Virchow2 model from Hugging Face to CPU.
+
+    DON'T use this function directly
+
+    :return: model, transform
+    """
+    # same as Virchow v1, just different model path
+    model = timm.create_model(
+        "hf-hub:paige-ai/Virchow2",
+        pretrained=True,
+        mlp_layer=SwiGLUPacked,
+        act_layer=torch.nn.SiLU,
+    )
+    model = model.eval()
+
+    transform = create_transform(
+        **resolve_data_config(model.pretrained_cfg, model=model)
+    )
+    return model, transform

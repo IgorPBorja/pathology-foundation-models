@@ -14,6 +14,7 @@ from models.adapters.loader import (
     __load_hibou_b,
     __load_hibou_L,
     __load_virchow,
+    __load_virchow_v2,
 )
 from models.adapters.inference import (
     __extract_features_uni,
@@ -24,6 +25,7 @@ from models.adapters.inference import (
     __extract_features_hibou_b,
     __extract_features_hibou_L,
     __extract_features_virchow,
+    __extract_features_virchow_v2,
 )
 
 
@@ -41,6 +43,7 @@ class FoundationModelEnum(Enum):
     HIBOU_B = "hibou-b"
     HIBOU_L = "hibou-L"
     VIRCHOW = "virchow"
+    VIRCHOW_V2 = "virchow-v2"
 
 
 _embedding_dims = {
@@ -52,6 +55,7 @@ _embedding_dims = {
     FoundationModelEnum.HIBOU_B: 768,
     FoundationModelEnum.HIBOU_L: 1024,
     FoundationModelEnum.VIRCHOW: 2560,
+    FoundationModelEnum.VIRCHOW_V2: 2560,
 }
 
 _loader_fns = {
@@ -63,6 +67,7 @@ _loader_fns = {
     FoundationModelEnum.HIBOU_B: __load_hibou_b,
     FoundationModelEnum.HIBOU_L: __load_hibou_L,
     FoundationModelEnum.VIRCHOW: __load_virchow,
+    FoundationModelEnum.VIRCHOW_V2: __load_virchow_v2,
 }
 
 _inference_fns = {
@@ -74,6 +79,7 @@ _inference_fns = {
     FoundationModelEnum.HIBOU_B: __extract_features_hibou_b,
     FoundationModelEnum.HIBOU_L: __extract_features_hibou_L,
     FoundationModelEnum.VIRCHOW: __extract_features_virchow,
+    FoundationModelEnum.VIRCHOW_V2: __extract_features_virchow_v2,
 }
 
 
