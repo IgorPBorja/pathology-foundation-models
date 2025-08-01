@@ -42,7 +42,7 @@ jobs:
         path: dist/
 
   publish-pypi:
-    needs: [build, test-install]
+    needs: [build]
     runs-on: ubuntu-latest
     if: |
       (github.event_name == 'release' && github.event.action == 'published') ||

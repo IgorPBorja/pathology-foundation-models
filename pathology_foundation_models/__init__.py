@@ -4,7 +4,7 @@ Pathology Foundation Models
 A Python package for interfacing with foundation models for histopathology image analysis.
 """
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __author__ = "Igor Borja"
 __email__ = "igorpradoborja@gmail.com"
 
