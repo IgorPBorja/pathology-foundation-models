@@ -1,6 +1,8 @@
 from setuptools import setup, find_packages
 from pathlib import Path
 
+from . import __version__, __author__, __email__
+
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()
 
@@ -15,9 +17,9 @@ with open(
 
 setup(
     name="pathology_foundation_models",
-    version="0.0.1",
-    author="Igor Borja",
-    author_email="igorpradoborja@gmail.com",
+    version=__version__,
+    author=__author__,
+    author_email=__email__,
     description="Interface for calling foundation models for histopathology image analysis",
     long_description=long_description,
     long_description_content_type="text/markdown",
