@@ -35,15 +35,15 @@ class FoundationModelEnum(Enum):
     """
 
     # TODO review those enum values (strs). Should they be the HF path?
-    UNI = "uni"
-    UNI2H = "uni2h"
-    PHIKON = "phikon"
-    PHIKON_V2 = "phikon_v2"
-    H_OPTIMUS_0 = "h-optimus-0"
-    HIBOU_B = "hibou-b"
-    HIBOU_L = "hibou-L"
-    VIRCHOW = "virchow"
-    VIRCHOW_V2 = "virchow-v2"
+    UNI = "UNI"
+    UNI2H = "UNI2H"
+    PHIKON = "PHIKON"
+    PHIKON_V2 = "PHIKON_V2"
+    H_OPTIMUS_0 = "H_OPTIMUS_0"
+    HIBOU_B = "HIBOU_B"
+    HIBOU_L = "HIBOU_L"
+    VIRCHOW = "VIRCHOW"
+    VIRCHOW_V2 = "VIRCHOW_V2"
 
 
 _embedding_dims = {
@@ -83,10 +83,11 @@ _inference_fns = {
 }
 
 
-def get_embedding_dim(model_type: FoundationModelEnum) -> int:
+def get_embedding_dim(model_type: FoundationModelEnum | str) -> int:
     """
     Returns the embedding dimension for the model type.
     """
+    model_type = FoundationModelEnum(model_type)
     try:
         return _embedding_dims[model_type]
     except KeyError:
