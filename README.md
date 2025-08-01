@@ -57,3 +57,30 @@ Another type of inference is supported through the `models.extract_features_from
 * `batch_size`: number of images per batch
 * `num_workers` (optional, defaults to 4): number of workers/threads for loading images in parallel
 * `display_progress`: whether to display progress with a tqdm progress bar (see [tqdm](https://github.com/tqdm/tqdm)).
+
+## Creating embedding cache
+
+It is also possible to create an embedding cache (`dataset.EmbeddingCache` class) - which is a torch `TensorDataset` generated from a labeled image dataset (though might work with unlabeled images, but this was not tested).
+
+This dataset can be saved to a file for later use easily using the `.save` method, and created/loaded from file using the `load_from_file` method. Also, being a torch dataset, it can be used in dataloaders and standard pytorch training loops easily.
+
+Example:
+
+```python
+from pathology_foundation_models.dataset import EmbeddingCache 
+from pathology_foundation_models.models import load_foundation_model
+
+# suppose my_dataset is a torchvision.datasets.ImageFolder
+
+uni = load_foundation_model("UNI", device="cuda", token="hf_MY_TOKEN")
+embed_cache = EmbeddingCache.init_from_dataset(
+    my_dataset,
+    uni,
+    batch_size=32,
+    num_workers=4,
+    display_progress=False,
+)  # using init_from_dataset, embeddings will be on same device as model
+embed_cache.save("/path/to/my/cache.pt")
+
+copy_cache = EmbeddingCache.load_from_file("/path/to/my/cache.pt", device="cuda")   # all embeddings will be on CUDA
+```
