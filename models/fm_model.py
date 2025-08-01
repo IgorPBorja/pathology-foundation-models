@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from torch import nn
 from typing import Literal
 
-from models import FoundationModelEnum, get_embedding_dim, get_loader_fn
+from models.config import FoundationModelEnum, get_embedding_dim, get_loader_fn
 
 
 @dataclass

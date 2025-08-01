@@ -7,6 +7,7 @@ import torch
 
 from timm.data import resolve_data_config
 from timm.data.transforms_factory import create_transform
+from timm.layers import SwiGLUPacked
 from torch import nn
 from torchvision import transforms as T
 from transformers import AutoModel, AutoImageProcessor, ViTModel
@@ -164,4 +165,28 @@ def __load_hibou_L() -> tuple[nn.Module, nn.Module]:
     )
     model = AutoModel.from_pretrained("histai/hibou-L", trust_remote_code=True)
     model.eval()
+    return model, transform
+
+
+def __load_virchow() -> tuple[nn.Module, nn.Module]:
+    """
+    --> See https://huggingface.co/paige-ai/Virchow
+
+    Loads the Virchow model from Hugging Face to CPU.
+
+    DON'T use this function directly
+
+    :return: model, transform
+    """
+    # need to specify MLP layer and activation function for proper init
+    model = timm.create_model(
+        "hf-hub:paige-ai/Virchow",
+        pretrained=True,
+        mlp_layer=SwiGLUPacked,
+        act_layer=torch.nn.SiLU,
+    )
+    model = model.eval()
+    transform = create_transform(
+        **resolve_data_config(model.pretrained_cfg, model=model)
+    )
     return model, transform

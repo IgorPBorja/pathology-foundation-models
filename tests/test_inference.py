@@ -2,13 +2,13 @@ import PIL
 import torch
 import pytest
 
-from inference import (
+from models.inference import (
     extract_features,
     extract_features_from_dataset,
     convert_to_batch_tensor,
 )
-from models import FoundationModelEnum
-from fm_model import load_foundation_model
+from models.config import FoundationModelEnum
+from models.fm_model import load_foundation_model
 from tests.fixtures import hf_token, image_dataset
 
 
@@ -22,6 +22,7 @@ from tests.fixtures import hf_token, image_dataset
         (FoundationModelEnum.H_OPTIMUS_0, (1, 1536)),
         (FoundationModelEnum.HIBOU_B, (1, 768)),
         (FoundationModelEnum.HIBOU_L, (1, 1024)),
+        (FoundationModelEnum.VIRCHOW, (1, 2560)),
     ],
 )
 def test_inference_models_from_PIL(model_type, expected_shape, hf_token):

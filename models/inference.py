@@ -1,202 +1,107 @@
-"""
-Implement model-specific inference functions for foundation models.
-"""
-
 import torch
+import torchvision.transforms as T
 
-from torch import nn
+from PIL.Image import Image
+from tqdm import tqdm
+from torchvision.datasets import ImageFolder
+
+from models.config import get_inference_fn
+from models.fm_model import FoundationModel
 
 
-def __extract_features_uni(
-    images: torch.Tensor,
-    model: nn.Module,
-    transform: nn.Module,
+def convert_to_batch_tensor(images: Image | list[Image] | torch.Tensor) -> torch.Tensor:
+    """
+    Converts a single PIL image or a torch tensor of shape (3, H, W) to a batch tensor of shape (1, 3, H, W).
+
+    If the input is already a batch tensor of shape (N, 3, H, W), it will be returned as is.
+
+    :param image: PIL Image or torch.Tensor of shape (3, H, W) or torch Tensor of shape (N, 3, H, W)
+    :return: Batch tensor of shape (1, 3, H, W)
+    """
+    if isinstance(images, list):
+        if not all(isinstance(img, Image) for img in images):
+            raise TypeError("All items in the list must be PIL Images")
+    elif not isinstance(images, Image) and not isinstance(images, torch.Tensor):
+        raise TypeError(
+            f"Input must be a PIL Image or a torch Tensor, got {type(images)}"
+        )
+
+    if isinstance(images, list):
+        transform = T.ToTensor()
+        image_list = [transform(img) for img in images]
+        images = torch.stack(image_list, dim=0)
+    if isinstance(images, Image):
+        transform = T.ToTensor()
+        images = transform(images).unsqueeze(0)  # Add batch dimension
+    elif isinstance(images, torch.Tensor):
+        if images.dim() == 3:
+            images = images.unsqueeze(0)  # Add batch dimension
+        elif images.dim() != 4:
+            raise ValueError(
+                f"Input tensor must be of shape (3, H, W) or (N, 3, H, W). Got {images.shape}"
+            )
+    else:
+        raise TypeError("Input must be a PIL Image or a torch Tensor")
+
+    assert (
+        images.dim() == 4
+    ), "Unexpected return shape, expected (1, 3, H, W) or (N, 3, H, W)"
+    return images
+
+
+def extract_features(
+    images: Image | list[Image] | torch.Tensor, model: FoundationModel
 ) -> torch.Tensor:
     """
-    --> See https://huggingface.co/MahmoodLab/UNI
+    Extracts features from single PIL image, list of PIL images or tensor using the specified model.
 
-    Extracts features from images using the UNI model.
-    Assumes image and model in the same device.
+    **Note: images must be of the same size, since inference is performed in a single pass**
 
-    DON'T use this function directly
-
-    :param images: Batch tensor of shape (N, 3, H, W)
-    :param model: The UNI model
-    :param transform: the preprocessing transform
-    :return: Extracted features
+    :param image: PIL Image or torch.Tensor of shape (3, H, W) or torch Tensor of shape (N, 3, H, W)
+    :param format: either 'pil' or 'torch'
+    :param model: FoundationModel instance containing the model and processor
+    :return: Extracted features as a torch.Tensor of shape (1, N)
     """
-    image_tensor = transform(images)
-    with torch.inference_mode():
-        features = model(image_tensor)
+    image_tensor = convert_to_batch_tensor(images)
+    image_tensor = image_tensor.to(model.device)
+
+    inference_fn = get_inference_fn(model.model_type)
+    features = inference_fn(image_tensor, model.model, model.processor)
+    assert features.shape == (
+        len(image_tensor),
+        model.embedding_dim,
+    ), f"Unexpected feature shape {features.shape}, expected ({len(image_tensor)}, {model.embedding_dim}) for model type {model.model_type.value}"
     return features
 
 
-def __extract_features_uni2h(
-    images: torch.Tensor,
-    model: nn.Module,
-    transform: nn.Module,
+def extract_features_from_dataset(
+    images: ImageFolder,
+    model: FoundationModel,
+    batch_size: int,
+    num_workers: int = 4,
+    display_progress: bool = False,
 ) -> torch.Tensor:
     """
-    --> See https://huggingface.co/MahmoodLab/UNI2-h
+    Extracts features from a collection images using the specified model.
+    Performs batching to handle large datasets efficiently.
 
-    Extracts features from images using the UNI2-h model.
-    Assumes image and model in the same device.
+    **Note: images must be of the same size, since images are batched before each inference pass**
 
-    DON'T use this function directly
-
-    :param images: Batch tensor of shape (N, 3, H, W)
-    :param model: The UNI2-h model
-    :param transform: the preprocessing transform
-    :return: Extracted features
+    :param images: ImageFolder dataset containing images
+    :param model: FoundationModel instance containing the model and processor
+    :param batch_size: Batch size for processing images
+    :param num_workers: Number of workers for DataLoader
+    :param display_progress: Whether to display a progress bar
+    :return: Extracted features as a torch.Tensor of shape (N, D) where
+        N is the number of images and D is the embedding dimension
     """
-    image_tensor = transform(images)
-    with torch.inference_mode():
-        features = model(image_tensor)
-    return features
-
-
-def __extract_features_phikon(
-    images: torch.Tensor,
-    model: nn.Module,
-    transform: nn.Module,
-) -> torch.Tensor:
-    """
-    --> See https://github.com/owkin/HistoSSLscaling/
-
-    Extracts features from images using the Phikon model.
-    Assumes image and model in the same device.
-
-    DON'T use this function directly
-
-    :param images: Batch tensor of shape (N, 3, H, W)
-    :param model: The Phikon model
-    :param transform: the preprocessing transform
-    :return: Extracted features
-    """
-    # process the image
-    inputs = transform(images, return_tensors="pt")
-    # cast back to original device
-    inputs = {k: v.to(images.device) for k, v in inputs.items()}
-
-    with torch.no_grad():
-        outputs = model(**inputs)
-        features = outputs.last_hidden_state[:, 0, :]
-    return features
-
-
-def __extract_features_phikon_v2(
-    images: torch.Tensor,
-    model: nn.Module,
-    transform: nn.Module,
-) -> torch.Tensor:
-    """
-    --> See https://huggingface.co/owkin/phikon-v2
-
-    Extracts features from images using the Phikon v2 model.
-
-    DON'T use this function directly
-
-    :param images: Batch tensor of shape (N, 3, H, W)
-    :param model: The Phikon v2 model
-    :param transform: the preprocessing transform
-    :return: Extracted features
-    """
-    inputs = transform(images, return_tensors="pt")
-    # cast back to original device
-    inputs = {k: v.to(images.device) for k, v in inputs.items()}
-
-    with torch.inference_mode():
-        outputs = model(**inputs)
-        features = outputs.last_hidden_state[:, 0, :]
-    return features
-
-
-def __extract_features_h_optimus_0(
-    images: torch.Tensor,
-    model: nn.Module,
-    transform: nn.Module,
-) -> torch.Tensor:
-    """
-    --> See https://huggingface.co/bioptimus/H-optimus-0 (adapted to work with tensors)
-
-    Extracts features from images using the H-Optimus-0 model.
-    Assumes image and model in the same device.
-
-    DON'T use this function directly
-
-    :param images: Batch tensor of shape (N, 3, H, W)
-    :param model: The H-Optimus-0 model
-    :param transform: the preprocessing transform
-    :return: Extracted features
-    """
-    with torch.autocast(device_type="cuda", dtype=torch.float16):
-        with torch.inference_mode():
-            # (C, H, W) -> (H, W, C)
-            numpy_images = [image.permute(1, 2, 0).cpu().numpy() for image in images]
-            preprocessed_images = torch.stack(
-                [transform(image) for image in numpy_images]
-            )  # (N, C, H, W)
-            features = model(preprocessed_images.to(images.device))
-    return features
-
-
-def __extract_features_hibou_b(
-    images: torch.Tensor,
-    model: nn.Module,
-    transform: nn.Module,
-) -> torch.Tensor:
-    """
-    --> See https://huggingface.co/histai/hibou-b
-
-    Extracts features from images using the Hibou-B model.
-    Assumes image and model in the same device.
-
-    DON'T use this function directly
-
-    NOTE: Hibou-B uses DinoV2 arch so
-    features are the first token of the last hidden state. Same as Phikon.
-
-    :param images: Batch tensor of shape (N, 3, H, W)
-    :param model: The Hibou-B model
-    :param transform: the preprocessing transform
-    :return: Extracted features
-    """
-    inputs = transform(images, return_tensors="pt")
-    # cast back to original device
-    inputs = {k: v.to(images.device) for k, v in inputs.items()}
-
-    with torch.no_grad():
-        outputs = model(**inputs)
-        features = outputs.last_hidden_state[:, 0, :]
-    return features
-
-
-def __extract_features_hibou_L(
-    images: torch.Tensor,
-    model: nn.Module,
-    transform: nn.Module,
-) -> torch.Tensor:
-    """
-    --> See https://huggingface.co/histai/hibou-L
-
-    Extracts features from images using the Hibou-L model.
-    Assumes image and model in the same device.
-
-    DON'T use this function directly
-
-    NOTE: Hibou-L uses DinoV2 arch so
-    features are the first token of the last hidden state. Same as Phikon.
-
-    :param images: Batch tensor of shape (N, 3, H, W)
-    :param model: The Hibou-L model
-    :param transform: the preprocessing transform
-    :return: Extracted features
-    """
-    inputs = transform(images, return_tensors="pt")
-    # cast back to original device
-    inputs = {k: v.to(images.device) for k, v in inputs.items()}
-
-    with torch.no_grad():
-        outputs = model(**inputs)
-        features = outputs.last_hidden_state[:, 0, :]
-    return features
+    dataloader = torch.utils.data.DataLoader(
+        images, batch_size=batch_size, shuffle=False, num_workers=num_workers
+    )
+    _embeddings = []
+    if display_progress:
+        dataloader = tqdm(dataloader, desc="Extracting features")
+    for batch, _ in dataloader:  # ignore labels
+        embedding_batch = extract_features(batch, model)
+        _embeddings.append(embedding_batch)
+    return torch.cat(_embeddings, dim=0)
