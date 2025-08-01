@@ -9,7 +9,7 @@ from dataclasses import dataclass
 from torch import nn
 from typing import Literal
 
-from models import FoundationModelEnum, get_embedding_dim, get_loader_fn
+from models.config import FoundationModelEnum, get_embedding_dim, get_loader_fn
 
 
 @dataclass
@@ -30,22 +30,25 @@ class FoundationModel:
 
 
 def load_foundation_model(
-    model_type: FoundationModelEnum, device: str | None = None, token: str | None = None
+    model_type: FoundationModelEnum | str,
+    device: str | None = None,
+    token: str | None = None,
 ) -> FoundationModel:
     """
     Loads model specified by type. Agnostic to storage location (huggingface, etc.)
 
     Returns a pair (model, transform)
 
-    :param model_type: FoundationModelEnum
+    :param model_type: model type, either enum instance or its string representation. See docs for list.
     :param device: device to load the model on (e.g. "cuda" or "cpu"). If None, will not move the model to any device
     :param token: access token (e.g Hugging Face access token). Might be None
-        (if None, will try to get from environment variables if necessary. For HF, this env var is `HF_TOKEN`)
+        (if None, will try to get from environment variables if necessary. For HF, this env var is `HF_TOKEN`. If this variable is not set, will prompt for it)
         HF's User Access Token can be found at https://huggingface.co/settings/tokens
     :return model: nn.Module
     :return transform: nn.Module
     """
-    if not device.startswith("cuda"):
+    model_type: FoundationModelEnum = FoundationModelEnum(model_type)
+    if not device or not device.startswith("cuda"):
         logging.warning(
             "Model will be loaded on CPU. If you want to use GPU, please specify `device='cuda'`"
         )

@@ -35,3 +35,7 @@ jobs:
     
     - name: Check package integrity
       run: twine check dist/*
+
+    - name: Test import 
+      run: |
+        python -c "import pathology_foundation_models; print('Package imported successfully')"

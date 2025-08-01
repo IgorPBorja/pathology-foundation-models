@@ -2,13 +2,19 @@ import PIL
 import torch
 import pytest
 
-from inference import (
+from models.inference import (
     extract_features,
     extract_features_from_dataset,
     convert_to_batch_tensor,
 )
-from models import FoundationModelEnum
-from fm_model import load_foundation_model
+
+# NOTE can't import enums twice with different import statements,
+# see https://stackoverflow.com/questions/40371360/imported-enum-class-is-not-comparing-equal-to-itself
+# so we import from models package
+from models import (
+    FoundationModelEnum,
+    load_foundation_model,
+)
 from tests.fixtures import hf_token, image_dataset
 
 
@@ -22,6 +28,8 @@ from tests.fixtures import hf_token, image_dataset
         (FoundationModelEnum.H_OPTIMUS_0, (1, 1536)),
         (FoundationModelEnum.HIBOU_B, (1, 768)),
         (FoundationModelEnum.HIBOU_L, (1, 1024)),
+        (FoundationModelEnum.VIRCHOW, (1, 2560)),
+        (FoundationModelEnum.VIRCHOW_V2, (1, 2560)),
     ],
 )
 def test_inference_models_from_PIL(model_type, expected_shape, hf_token):
@@ -47,17 +55,14 @@ def test_batch_inference(hf_token, image_dataset):
 
 
 def test_convert_to_batch_tensor():
-    # Test with a single PIL Image
     image = PIL.Image.new("RGB", (224, 224), color="blue")
     batch_tensor = convert_to_batch_tensor(image)
     assert batch_tensor.shape == (1, 3, 224, 224)
 
-    # Test with a list of PIL Images
     images = [image, PIL.Image.new("RGB", (224, 224), color="green")]
     batch_tensor = convert_to_batch_tensor(images)
     assert batch_tensor.shape == (2, 3, 224, 224)
 
-    # Test with a torch Tensor
     tensor_image = torch.rand(3, 224, 224)
     batch_tensor = convert_to_batch_tensor(tensor_image)
     assert batch_tensor.shape == (1, 3, 224, 224)

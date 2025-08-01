@@ -3,8 +3,8 @@ import torch
 from torchvision.datasets import ImageFolder
 from torch.utils.data import TensorDataset
 
-from fm_model import FoundationModel
-from inference import extract_features_from_dataset
+from models.fm_model import FoundationModel
+from models.inference import extract_features_from_dataset
 
 
 class EmbeddingCache(TensorDataset):

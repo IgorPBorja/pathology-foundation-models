@@ -200,3 +200,69 @@ def __extract_features_hibou_L(
         outputs = model(**inputs)
         features = outputs.last_hidden_state[:, 0, :]
     return features
+
+
+def __extract_features_virchow(
+    images: torch.Tensor,
+    model: nn.Module,
+    transform: nn.Module,
+) -> torch.Tensor:
+    """
+    --> See https://huggingface.co/paige-ai/Virchow
+
+    Extracts features from images using the Virchow model.
+    Assumes image and model in the same device.
+
+    DON'T use this function directly
+
+    :param images: Batch tensor of shape (N, 3, H, W)
+    :param model: The Virchow model
+    :param transform: the preprocessing transform
+    :return: Extracted features
+    """
+    images = transform(images)
+    # model deck recommends running inference in mixed precision (autocast mode, f16)
+    # so we do that
+    with torch.inference_mode(), torch.autocast(
+        device_type="cuda", dtype=torch.float16
+    ):
+        output = model(images)
+    class_tokens = output[:, 0]  # (N, 1280)
+    patch_tokens = output[:, 1:]  # (N, 256, 1280)
+    # concatenate class token and average pool of patch tokens
+    features = torch.cat([class_tokens, patch_tokens.mean(dim=1)], dim=-1)  # (N, 2560)
+    return features
+
+
+def __extract_features_virchow_v2(
+    images: torch.Tensor,
+    model: nn.Module,
+    transform: nn.Module,
+) -> torch.Tensor:
+    """
+    --> See https://huggingface.co/paige-ai/Virchow2
+
+    Extracts features from images using the Virchow2 model.
+    Assumes image and model in the same device.
+
+    DON'T use this function directly
+
+    :param images: Batch tensor of shape (N, 3, H, W)
+    :param model: The Virchow2 model
+    :param transform: the preprocessing transform
+    :return: Extracted features
+    """
+    images = transform(images)
+    # model deck recommends running inference in mixed precision (autocast mode, f16)
+    # so we do that
+    with torch.inference_mode(), torch.autocast(
+        device_type="cuda", dtype=torch.float16
+    ):
+        output = model(images)  # (N, 261, 2560)
+    class_tokens = output[:, 0]  # (N, 2560)
+    # NOTE: tokens 1-4 are REGISTER tokens according to the model card
+    # so we must ignore them
+    patch_tokens = output[:, 5:]  # (N, 256, 2560)
+    # concatenate class token and average pool of patch tokens
+    features = torch.cat([class_tokens, patch_tokens.mean(dim=1)], dim=-1)  # (N, 2560)
+    return features
