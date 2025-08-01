@@ -5,8 +5,8 @@ from PIL.Image import Image
 from tqdm import tqdm
 from torchvision.datasets import ImageFolder
 
-from models.config import get_inference_fn
-from models.fm_model import FoundationModel
+from pathology_foundation_models.models import FoundationModel
+from pathology_foundation_models.models.config import get_inference_fn
 
 
 def convert_to_batch_tensor(images: Image | list[Image] | torch.Tensor) -> torch.Tensor:

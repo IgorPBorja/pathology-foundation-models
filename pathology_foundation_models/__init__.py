@@ -9,8 +9,8 @@ __author__ = "Igor Borja"
 __email__ = "igorpradoborja@gmail.com"
 
 # Import key modules for easier access
-from . import dataset
-from . import models
+from pathology_foundation_models import dataset
+from pathology_foundation_models import models
 
 __all__ = [
     "dataset",

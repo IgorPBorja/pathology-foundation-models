@@ -1,8 +1,8 @@
-from models import (
+from pathology_foundation_models.models import (
     FoundationModelEnum,
     load_foundation_model,
 )
-from tests.fixtures import hf_token
+from pathology_foundation_models.tests.fixtures import hf_token
 
 
 def test_load_no_device(hf_token):

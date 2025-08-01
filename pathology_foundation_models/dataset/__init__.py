@@ -1,1 +1,1 @@
-from dataset.cached_embedding import EmbeddingCache
+from pathology_foundation_models.dataset.cached_embedding import EmbeddingCache

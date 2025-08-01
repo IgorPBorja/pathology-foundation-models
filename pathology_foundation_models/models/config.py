@@ -5,7 +5,7 @@ from enum import Enum
 from torch import nn
 from typing import Callable
 
-from models.adapters.loader import (
+from pathology_foundation_models.models.adapters.loader import (
     __load_uni,
     __load_uni2h,
     __load_phikon,
@@ -16,7 +16,7 @@ from models.adapters.loader import (
     __load_virchow,
     __load_virchow_v2,
 )
-from models.adapters.inference import (
+from pathology_foundation_models.models.adapters.inference import (
     __extract_features_uni,
     __extract_features_uni2h,
     __extract_features_phikon,
