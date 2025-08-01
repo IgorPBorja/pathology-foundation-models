@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from pathlib import Path
 
-from . import __version__, __author__, __email__
+from pathology_foundation_models import __version__, __author__, __email__
 
 with open("README.md", "r", encoding="utf-8") as fh:
     long_description = fh.read()

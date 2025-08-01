@@ -2,13 +2,13 @@ import PIL
 import torch
 import pytest
 
-from models.inference import (
+from pathology_foundation_models.models.inference import (
     extract_features,
     extract_features_from_dataset,
     convert_to_batch_tensor,
 )
-from models.config import FoundationModelEnum
-from models.fm_model import load_foundation_model
+from pathology_foundation_models.models.config import FoundationModelEnum
+from pathology_foundation_models.models.fm_model import load_foundation_model
 from tests.fixtures import hf_token, image_dataset
 
 
