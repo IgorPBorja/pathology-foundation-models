@@ -1,8 +1,8 @@
 # Pathology foundation models
 
-Interface for calling foundation models for pathology image analysis.
+Interface for calling foundation models for histopathology image analysis.
 
-## Installing package
+## Installation
 
 To install the package in development mode:
 
@@ -20,14 +20,4 @@ For Jupyter notebook support:
 
 ```bash
 pip install -e ".[notebook]"
-```
-
-## Running experiments
-
-Experiments should be placed under the `experiments` folder. After installing the package, you can import modules directly:
-
-```python
-from loader import load_foundation_model
-from dataset.cached_embedding import EmbeddingCache
-from unsupervised.kmeans import kmeans_clustering
 ```

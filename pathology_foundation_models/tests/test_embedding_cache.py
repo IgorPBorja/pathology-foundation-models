@@ -5,9 +5,9 @@ import torch
 from torchvision.datasets import ImageFolder
 from PIL import Image
 
-from pathology_foundation_models.dataset.cached_embedding import EmbeddingCache
-from pathology_foundation_models.models.inference import extract_features
-from pathology_foundation_models.models.fm_model import (
+from dataset.cached_embedding import EmbeddingCache
+from models.inference import extract_features
+from models.fm_model import (
     FoundationModelEnum,
     load_foundation_model,
 )

@@ -2,7 +2,7 @@ import PIL
 import torch
 import pytest
 
-from pathology_foundation_models.models.inference import (
+from models.inference import (
     extract_features,
     extract_features_from_dataset,
     convert_to_batch_tensor,
@@ -11,7 +11,7 @@ from pathology_foundation_models.models.inference import (
 # NOTE can't import enums twice with different import statements,
 # see https://stackoverflow.com/questions/40371360/imported-enum-class-is-not-comparing-equal-to-itself
 # so we import from models package
-from pathology_foundation_models.models import (
+from models import (
     FoundationModelEnum,
     load_foundation_model,
 )

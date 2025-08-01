@@ -40,12 +40,12 @@ def load_foundation_model(
     :param model_type: FoundationModelEnum
     :param device: device to load the model on (e.g. "cuda" or "cpu"). If None, will not move the model to any device
     :param token: access token (e.g Hugging Face access token). Might be None
-        (if None, will try to get from environment variables if necessary. For HF, this env var is `HF_TOKEN`)
+        (if None, will try to get from environment variables if necessary. For HF, this env var is `HF_TOKEN`. If this variable is not set, will prompt for it)
         HF's User Access Token can be found at https://huggingface.co/settings/tokens
     :return model: nn.Module
     :return transform: nn.Module
     """
-    if not device.startswith("cuda"):
+    if not device or not device.startswith("cuda"):
         logging.warning(
             "Model will be loaded on CPU. If you want to use GPU, please specify `device='cuda'`"
         )
