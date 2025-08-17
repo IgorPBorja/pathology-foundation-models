@@ -12,3 +12,7 @@
 * Added support for Virchow and Virchow2
 * Simplified model loading (can load through string names now)
 * Fixed packaging issues
+
+# Version 0.0.3
+
+* Added support for DINO/DINOv2/Google's ViT/ResNet

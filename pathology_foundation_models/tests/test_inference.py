@@ -14,31 +14,45 @@ from pathology_foundation_models.models.inference import (
 from pathology_foundation_models.models import (
     FoundationModelEnum,
     load_foundation_model,
+    get_embedding_dim,
 )
 from pathology_foundation_models.tests.fixtures import hf_token, image_dataset
 
 
 @pytest.mark.parametrize(
-    "model_type, expected_shape",
+    "model_type",
     [
-        (FoundationModelEnum.UNI, (1, 1024)),
-        (FoundationModelEnum.UNI2H, (1, 1536)),
-        (FoundationModelEnum.PHIKON, (1, 768)),
-        (FoundationModelEnum.PHIKON_V2, (1, 1024)),
-        (FoundationModelEnum.H_OPTIMUS_0, (1, 1536)),
-        (FoundationModelEnum.HIBOU_B, (1, 768)),
-        (FoundationModelEnum.HIBOU_L, (1, 1024)),
-        (FoundationModelEnum.VIRCHOW, (1, 2560)),
-        (FoundationModelEnum.VIRCHOW_V2, (1, 2560)),
+        FoundationModelEnum.UNI,
+        FoundationModelEnum.UNI2H,
+        FoundationModelEnum.PHIKON,
+        FoundationModelEnum.PHIKON_V2,
+        FoundationModelEnum.H_OPTIMUS_0,
+        FoundationModelEnum.HIBOU_B,
+        FoundationModelEnum.HIBOU_L,
+        FoundationModelEnum.VIRCHOW,
+        FoundationModelEnum.VIRCHOW_V2,
+        FoundationModelEnum.VIT_B16,
+        FoundationModelEnum.VIT_L16,
+        FoundationModelEnum.DINO_V1_S8,
+        FoundationModelEnum.DINO_V1_B8,
+        FoundationModelEnum.DINO_V1_S16,
+        FoundationModelEnum.DINO_V1_B16,
+        FoundationModelEnum.DINO_V2_S,
+        FoundationModelEnum.DINO_V2_B,
+        FoundationModelEnum.DINO_V2_L,
+        FoundationModelEnum.DINO_V2_G,
+        FoundationModelEnum.RESNET_18,
+        FoundationModelEnum.RESNET_34,
+        FoundationModelEnum.RESNET_50,
     ],
 )
-def test_inference_models_from_PIL(model_type, expected_shape, hf_token):
+def test_inference_models_from_PIL(model_type, hf_token):
     image = PIL.Image.new("RGB", (224, 224), color="red")
     model = load_foundation_model(model_type, device="cuda", token=hf_token)
     features = extract_features(image, model)
 
     assert isinstance(features, torch.Tensor)
-    assert features.shape == expected_shape
+    assert features.shape == (1, get_embedding_dim(model_type))
 
 
 def test_batch_inference(hf_token, image_dataset):

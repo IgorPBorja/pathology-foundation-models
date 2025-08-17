@@ -32,6 +32,11 @@ class FoundationModel:
         """Returns the embedding dimension of the model."""
         return get_embedding_dim(self.model_type)
 
+    @property
+    def name(self) -> str:
+        """Returns the HF name of the model."""
+        return self.model_type.value
+
 
 def load_foundation_model(
     model_type: FoundationModelEnum | str,

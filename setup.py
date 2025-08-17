@@ -1,7 +1,7 @@
 from setuptools import setup, find_packages
 from pathlib import Path
 
-__version__ = "0.0.2"
+__version__ = "0.0.3"
 __author__ = "Igor Borja"
 __email__ = "igorpradoborja@gmail.com"
 

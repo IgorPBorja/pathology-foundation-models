@@ -10,7 +10,29 @@ from timm.data.transforms_factory import create_transform
 from timm.layers import SwiGLUPacked
 from torch import nn
 from torchvision import transforms as T
-from transformers import AutoModel, AutoImageProcessor, ViTModel
+from transformers import AutoModel, AutoImageProcessor
+
+
+def __default_hf_loader(model_name: str) -> tuple[nn.Module, nn.Module]:
+    """
+    Various models use the default HF loading code,
+    like phikon-v2 and the DINO family
+
+    Loads model from Hugging Face to CPU
+
+    DON'T use this function directly
+
+    :param model_name: HF model path
+    :return: model, transform
+    """
+
+    def __loader_fn():
+        transform = AutoImageProcessor.from_pretrained(model_name)
+        model = AutoModel.from_pretrained(model_name)
+        model.eval()
+        return model, transform
+
+    return __loader_fn
 
 
 def __load_uni() -> tuple[nn.Module, nn.Module]:
@@ -70,36 +92,6 @@ def __load_uni2h() -> tuple[nn.Module, nn.Module]:
     transform = create_transform(
         **resolve_data_config(model.pretrained_cfg, model=model)
     )
-    model.eval()
-    return model, transform
-
-
-def __load_phikon() -> tuple[nn.Module, nn.Module]:
-    """
-    --> See https://github.com/owkin/HistoSSLscaling/
-
-    Loads the Phikon model from Hugging Face to CPU.
-
-    DON'T use this function directly
-
-    :return: model, transform
-    """
-    image_processor = AutoImageProcessor.from_pretrained("owkin/phikon")
-    model = ViTModel.from_pretrained("owkin/phikon", add_pooling_layer=False)
-    model.eval()
-    return model, image_processor
-
-
-def __load_phikon_v2() -> tuple[nn.Module, nn.Module]:
-    """
-    --> See https://huggingface.co/owkin/phikon-v2
-
-    Loads the Phikon v2 model from Hugging Face to CPU.
-
-    DON'T use this function directly
-    """
-    transform = AutoImageProcessor.from_pretrained("owkin/phikon-v2")
-    model = AutoModel.from_pretrained("owkin/phikon-v2")
     model.eval()
     return model, transform
 
