@@ -6,14 +6,18 @@ import logging
 
 from huggingface_hub import login
 from dataclasses import dataclass
-from torch import nn
-from typing import Literal
+from torch import Tensor, nn
+from typing import Literal, Tuple
 
 from pathology_foundation_models.models.config import (
     FoundationModelEnum,
     get_embedding_dim,
     get_loader_fn,
     list_models,
+)
+
+from pathology_foundation_models.models.inference import (
+    get_inference_fn,
 )
 
 class FoundationModel(nn.Module):
@@ -40,6 +44,15 @@ class FoundationModel(nn.Module):
         self.model = model
         self.processor = processor
         self.device = device
+
+    def forward(self, image_tensor: Tensor) -> Tensor:
+        inference_fn = get_inference_fn(self.model_type)
+        features = inference_fn(image_tensor, self.model, self.processor)
+        assert features.shape == (
+            len(image_tensor),
+            self.embedding_dim,
+        ), f"Unexpected feature shape {features.shape}, expected ({len(image_tensor)}, {model.embedding_dim}) for model type {model.model_type.value}"
+        return features
 
     @property
     def embedding_dim(self) -> int:

@@ -64,13 +64,7 @@ def extract_features(
     """
     image_tensor = convert_to_batch_tensor(images)
     image_tensor = image_tensor.to(model.device)
-
-    inference_fn = get_inference_fn(model.model_type)
-    features = inference_fn(image_tensor, model.model, model.processor)
-    assert features.shape == (
-        len(image_tensor),
-        model.embedding_dim,
-    ), f"Unexpected feature shape {features.shape}, expected ({len(image_tensor)}, {model.embedding_dim}) for model type {model.model_type.value}"
+    features = model.forward(image_tensor)
     return features
 
 
