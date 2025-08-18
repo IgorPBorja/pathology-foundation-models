@@ -15,17 +15,30 @@ from pathology_foundation_models.models.config import (
     get_loader_fn,
 )
 
+class FoundationModel(nn.Module):
+    def __init__(
+        self,
+        model_type: FoundationModelEnum,
+        model_source: Literal["hf"],
+        model: nn.Module,
+        processor: nn.Module,
+        device: str = 'cuda'
+    ):
+        """
+        Foundation model wrapper class.
 
-@dataclass
-class FoundationModel:
-    model_type: FoundationModelEnum
-    """Model identifier. Format depends on the source (e.g., Hugging Face model ID)."""
-    model_source: Literal["hf"]
-    """Model source. Currently only supports 'hf' for Hugging Face."""
-    model: nn.Module
-    processor: nn.Module
-    """Preprocessing transform"""
-    device: str
+        :param model_type: Model identifier. Format depends on the source (e.g., Hugging Face model ID).
+        :param model_source: Model source. Currently only supports 'hf' for Hugging Face.
+        :param model: Model object (nn.Module). 
+        :param processor: Preprocessing transform.
+        :param device: Device where the FM is going to be loaded to. Default: 'cuda'.
+        """
+        super().__init__()
+        self.model_type = model_type
+        self.model_source = model_source
+        self.model = model
+        self.processor = processor
+        self.device = device
 
     @property
     def embedding_dim(self) -> int:
