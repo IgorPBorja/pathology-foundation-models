@@ -5,20 +5,16 @@ Module for abstracting model loading logic and providing a unified interface
 import logging
 
 from huggingface_hub import login
-from dataclasses import dataclass
 from torch import Tensor, nn
-from typing import Literal, Tuple
+from typing import Literal
 
 from pathology_foundation_models.models.config import (
     FoundationModelEnum,
     get_embedding_dim,
     get_loader_fn,
-    list_models,
-)
-
-from pathology_foundation_models.models.inference import (
     get_inference_fn,
 )
+
 
 class FoundationModel(nn.Module):
     def __init__(
