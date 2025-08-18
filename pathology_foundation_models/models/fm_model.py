@@ -13,6 +13,7 @@ from pathology_foundation_models.models.config import (
     FoundationModelEnum,
     get_embedding_dim,
     get_loader_fn,
+    list_models,
 )
 
 class FoundationModel(nn.Module):
@@ -69,7 +70,19 @@ def load_foundation_model(
     :return model: nn.Module
     :return transform: nn.Module
     """
-    model_type: FoundationModelEnum = FoundationModelEnum(model_type)
+    assert type(model_type) in (str, FoundationModelEnum), "Parameter `model_type` must be a string or a member of FoundationModelEnum."
+
+    if isinstance(model_type, str):
+        model_type = model_type.upper()
+        available_models = FoundationModelEnum.__members__.keys()
+        if model_type not in available_models: 
+            raise ValueError(f"`{model_type}` is not a supported foundation model. Available options are: {available_models}")
+        model_type: FoundationModelEnum = FoundationModelEnum._member_map_[model_type]
+    elif isinstance(model_type, FoundationModelEnum):
+        model_type: FoundationModelEnum = FoundationModelEnum(model_type)
+    else:
+        assert False, "Unreachable"
+
     if not device or not device.startswith("cuda"):
         logging.warning(
             "Model will be loaded on CPU. If you want to use GPU, please specify `device='cuda'`"
