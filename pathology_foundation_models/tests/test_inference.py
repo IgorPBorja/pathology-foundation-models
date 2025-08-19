@@ -2,11 +2,7 @@ import PIL
 import torch
 import pytest
 
-from pathology_foundation_models.models.inference import (
-    extract_features,
-    extract_features_from_dataset,
-    convert_to_batch_tensor,
-)
+from pathology_foundation_models.models.inference import extract_features_from_dataset
 
 # NOTE can't import enums twice with different import statements,
 # see https://stackoverflow.com/questions/40371360/imported-enum-class-is-not-comparing-equal-to-itself
@@ -17,6 +13,7 @@ from pathology_foundation_models.models import (
     get_embedding_dim,
 )
 from pathology_foundation_models.tests.fixtures import hf_token, image_dataset
+from pathology_foundation_models.models.utils import convert_to_batch_tensor
 
 
 @pytest.mark.parametrize(
@@ -49,7 +46,7 @@ from pathology_foundation_models.tests.fixtures import hf_token, image_dataset
 def test_inference_models_from_PIL(model_type, hf_token):
     image = PIL.Image.new("RGB", (224, 224), color="red")
     model = load_foundation_model(model_type, device="cuda", token=hf_token)
-    features = extract_features(image, model)
+    features = model(image)
 
     assert isinstance(features, torch.Tensor)
     assert features.shape == (1, get_embedding_dim(model_type))

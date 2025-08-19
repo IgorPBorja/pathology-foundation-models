@@ -9,6 +9,5 @@ from pathology_foundation_models.models.fm_model import (
     load_foundation_model,
 )
 from pathology_foundation_models.models.inference import (
-    extract_features,
     extract_features_from_dataset,
 )

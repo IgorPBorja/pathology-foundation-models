@@ -16,3 +16,8 @@
 # Version 0.0.3
 
 * Added support for DINO/DINOv2/Google's ViT/ResNet
+
+
+# Version 0.0.4
+
+* Makes `FoundationModel` subclass of `torch.nn.Module` for easier pipeline building process.

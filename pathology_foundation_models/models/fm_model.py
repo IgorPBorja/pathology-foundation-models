@@ -5,27 +5,52 @@ Module for abstracting model loading logic and providing a unified interface
 import logging
 
 from huggingface_hub import login
-from dataclasses import dataclass
-from torch import nn
+from torch import Tensor, nn
 from typing import Literal
 
 from pathology_foundation_models.models.config import (
     FoundationModelEnum,
     get_embedding_dim,
     get_loader_fn,
+    get_inference_fn,
 )
+from pathology_foundation_models.models.utils import convert_to_batch_tensor
 
 
-@dataclass
-class FoundationModel:
-    model_type: FoundationModelEnum
-    """Model identifier. Format depends on the source (e.g., Hugging Face model ID)."""
-    model_source: Literal["hf"]
-    """Model source. Currently only supports 'hf' for Hugging Face."""
-    model: nn.Module
-    processor: nn.Module
-    """Preprocessing transform"""
-    device: str
+class FoundationModel(nn.Module):
+    def __init__(
+        self,
+        model_type: FoundationModelEnum,
+        model_source: Literal["hf"],
+        model: nn.Module,
+        processor: nn.Module,
+        device: str = "cuda",
+    ):
+        """
+        Foundation model wrapper class.
+
+        :param model_type: Model identifier. Format depends on the source (e.g., Hugging Face model ID).
+        :param model_source: Model source. Currently only supports 'hf' for Hugging Face.
+        :param model: Model object (nn.Module).
+        :param processor: Preprocessing transform.
+        :param device: Device where the FM is going to be loaded to. Default: 'cuda'.
+        """
+        super().__init__()
+        self.model_type = model_type
+        self.model_source = model_source
+        self.model = model
+        self.processor = processor
+        self.device = device
+
+    def forward(self, image_tensor: Tensor) -> Tensor:
+        image_tensor = convert_to_batch_tensor(image_tensor).to(self.device)
+        inference_fn = get_inference_fn(self.model_type)
+        features = inference_fn(image_tensor, self.model, self.processor)
+        assert features.shape == (
+            len(image_tensor),
+            self.embedding_dim,
+        ), f"Unexpected feature shape {features.shape}, expected ({len(image_tensor)}, {model.embedding_dim}) for model type {model.model_type.value}"
+        return features
 
     @property
     def embedding_dim(self) -> int:
@@ -56,7 +81,24 @@ def load_foundation_model(
     :return model: nn.Module
     :return transform: nn.Module
     """
-    model_type: FoundationModelEnum = FoundationModelEnum(model_type)
+    assert type(model_type) in (
+        str,
+        FoundationModelEnum,
+    ), "Parameter `model_type` must be a string or a member of FoundationModelEnum."
+
+    if isinstance(model_type, str):
+        model_type = model_type.upper()
+        available_models = FoundationModelEnum.__members__.keys()
+        if model_type not in available_models:
+            raise ValueError(
+                f"`{model_type}` is not a supported foundation model. Available options are: {available_models}"
+            )
+        model_type: FoundationModelEnum = FoundationModelEnum._member_map_[model_type]
+    elif isinstance(model_type, FoundationModelEnum):
+        model_type: FoundationModelEnum = FoundationModelEnum(model_type)
+    else:
+        assert False, "Unreachable"
+
     if not device or not device.startswith("cuda"):
         logging.warning(
             "Model will be loaded on CPU. If you want to use GPU, please specify `device='cuda'`"
