@@ -14,6 +14,7 @@ from pathology_foundation_models.models.config import (
     get_loader_fn,
     get_inference_fn,
 )
+from pathology_foundation_models.models.utils import convert_to_batch_tensor
 
 
 class FoundationModel(nn.Module):
@@ -23,14 +24,14 @@ class FoundationModel(nn.Module):
         model_source: Literal["hf"],
         model: nn.Module,
         processor: nn.Module,
-        device: str = 'cuda'
+        device: str = "cuda",
     ):
         """
         Foundation model wrapper class.
 
         :param model_type: Model identifier. Format depends on the source (e.g., Hugging Face model ID).
         :param model_source: Model source. Currently only supports 'hf' for Hugging Face.
-        :param model: Model object (nn.Module). 
+        :param model: Model object (nn.Module).
         :param processor: Preprocessing transform.
         :param device: Device where the FM is going to be loaded to. Default: 'cuda'.
         """
@@ -42,6 +43,7 @@ class FoundationModel(nn.Module):
         self.device = device
 
     def forward(self, image_tensor: Tensor) -> Tensor:
+        image_tensor = convert_to_batch_tensor(image_tensor).to(self.device)
         inference_fn = get_inference_fn(self.model_type)
         features = inference_fn(image_tensor, self.model, self.processor)
         assert features.shape == (
@@ -79,13 +81,18 @@ def load_foundation_model(
     :return model: nn.Module
     :return transform: nn.Module
     """
-    assert type(model_type) in (str, FoundationModelEnum), "Parameter `model_type` must be a string or a member of FoundationModelEnum."
+    assert type(model_type) in (
+        str,
+        FoundationModelEnum,
+    ), "Parameter `model_type` must be a string or a member of FoundationModelEnum."
 
     if isinstance(model_type, str):
         model_type = model_type.upper()
         available_models = FoundationModelEnum.__members__.keys()
-        if model_type not in available_models: 
-            raise ValueError(f"`{model_type}` is not a supported foundation model. Available options are: {available_models}")
+        if model_type not in available_models:
+            raise ValueError(
+                f"`{model_type}` is not a supported foundation model. Available options are: {available_models}"
+            )
         model_type: FoundationModelEnum = FoundationModelEnum._member_map_[model_type]
     elif isinstance(model_type, FoundationModelEnum):
         model_type: FoundationModelEnum = FoundationModelEnum(model_type)
