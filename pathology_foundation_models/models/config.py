@@ -81,12 +81,23 @@ _embedding_dims = {
 }
 
 
+def list_model_sources() -> list[str]:
+    """
+    Lists all available models' HF identifiers
+    """
+    return [model.value.lower() for model in FoundationModelEnum]
+
 def list_models() -> list[str]:
     """
-    Lists all available models
+    Lists all available models' names.
     """
-    return [model.value for model in FoundationModelEnum]
+    return [model.name.lower() for model in FoundationModelEnum]
 
+def is_model_available(model_str: str):
+    return (
+        model_str.lower() in list_models()
+        or model_str.lower() in list_model_sources()
+    )
 
 def get_embedding_dim(model_type: FoundationModelEnum | str) -> int:
     """
