@@ -13,6 +13,8 @@ from pathology_foundation_models.models.config import (
     get_embedding_dim,
     get_loader_fn,
     get_inference_fn,
+    is_model_available,
+    list_models,
 )
 from pathology_foundation_models.models.utils import convert_to_batch_tensor
 
@@ -86,26 +88,20 @@ def load_foundation_model(
         FoundationModelEnum,
     ), "Parameter `model_type` must be a string or a member of FoundationModelEnum."
 
-    if isinstance(model_type, str):
-        model_type = model_type.upper()
-        available_models = FoundationModelEnum.__members__.keys()
-        if model_type not in available_models:
-            raise ValueError(
-                f"`{model_type}` is not a supported foundation model. Available options are: {available_models}"
-            )
-        model_type: FoundationModelEnum = FoundationModelEnum._member_map_[model_type]
-    elif isinstance(model_type, FoundationModelEnum):
-        model_type: FoundationModelEnum = FoundationModelEnum(model_type)
-    else:
-        assert False, "Unreachable"
+    if isinstance(model_type, str) and not is_model_available(model_type):
+        raise ValueError(
+            f"`{model_type}` is not a supported foundation model. Available options are: {list_models()}"
+        )
 
     if not device or not device.startswith("cuda"):
         logging.warning(
             "Model will be loaded on CPU. If you want to use GPU, please specify `device='cuda'`"
         )
+
     login(token)
     source = "hf"  # for now only supports Hugging Face
 
+    model_type: FoundationModelEnum = FoundationModelEnum(model_type)
     loader = get_loader_fn(model_type)
     model, transform = loader()
     model = model.to(device) if device else model
