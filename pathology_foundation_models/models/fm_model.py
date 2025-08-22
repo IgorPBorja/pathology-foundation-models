@@ -45,11 +45,11 @@ class FoundationModel(nn.Module):
     def forward(self, image_tensor: Tensor) -> Tensor:
         image_tensor = convert_to_batch_tensor(image_tensor).to(self.device)
         inference_fn = get_inference_fn(self.model_type)
-        features = inference_fn(image_tensor, self.model, self.processor)
+        features = inference_fn(image_tensor, self.model.to(self.device), self.processor)
         assert features.shape == (
             len(image_tensor),
             self.embedding_dim,
-        ), f"Unexpected feature shape {features.shape}, expected ({len(image_tensor)}, {model.embedding_dim}) for model type {model.model_type.value}"
+        ), f"Unexpected feature shape {features.shape}, expected ({len(image_tensor)}, {self.embedding_dim}) for self type {self.model_type.value}"
         return features
 
     @property
