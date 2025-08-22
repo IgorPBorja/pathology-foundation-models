@@ -6,7 +6,6 @@ from torchvision.datasets import ImageFolder
 from PIL import Image
 
 from pathology_foundation_models.dataset.cached_embedding import EmbeddingCache
-from pathology_foundation_models.models.inference import extract_features
 from pathology_foundation_models.models.fm_model import (
     FoundationModelEnum,
     load_foundation_model,
@@ -22,7 +21,7 @@ def test_make_embedding_cache(hf_token: str, image_dataset: ImageFolder):
     dataset_dir = image_dataset.root
 
     sample_img = Image.open(os.path.join(dataset_dir, "class1", "image_0.jpg"))
-    sample_embedding = extract_features(sample_img, model)
+    sample_embedding = model(sample_img)
     embed_dim = sample_embedding.shape[-1]
 
     # internal tensors from TensorDataset are ok
