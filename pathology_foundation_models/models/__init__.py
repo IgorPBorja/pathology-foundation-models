@@ -3,6 +3,8 @@
 from pathology_foundation_models.models.config import (
     FoundationModelEnum,
     get_embedding_dim,
+    list_models,
+    is_model_available,
 )
 from pathology_foundation_models.models.fm_model import (
     FoundationModel,
